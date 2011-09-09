@@ -1,0 +1,7 @@
+{
+	"listenPort": 8085,
+	"pollTimeout": 45000,
+	"topicTimeout": 60000,
+	"messageHistoryMax": 200,
+    "snsArn": "arn:aws:sns:us-east-1:268581570606:pollvault_test"
+}

@@ -1,0 +1,82 @@
+<html>
+  <head>
+        <title>Simple chat page</title>
+      <!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>-->
+      <script type="text/javascript" src="jquery.min.js"></script>
+        <script type="text/javascript">
+            var lastSeqid = -1;
+            var currentTopic = "test";
+
+            $(document).ready(function() {
+                // attach a submit handler to the form
+                $("#postForm").submit(function(event) {
+
+                    // get some values from elements on the page:
+                    var $form = $(this),
+                            term = $form.find('input[name="s"]').val(),
+                            url = $form.attr('action');
+
+                    currentTopic = $form.find( 'input[name="topic"]' ).val();
+
+                    // stop form from submitting normally
+                    event.preventDefault();
+
+                    // Send the data using post and put the results in a div
+                    $.post("/post", {
+                        topic : $form.find( 'input[name="topic"]' ).val(),
+                        message : JSON.stringify({
+                                name : $form.find( 'input[name="name"]' ).val(),
+                                message : $form.find( 'input[name="message"]' ).val()
+                        })
+                    });
+                });
+                poll();
+            });
+
+            function poll() {
+                var onOff = 'off';
+                var data = {};
+                currentTopic = $('#topic').val();
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    data: data,
+                    url: "/longpoll?topic="+currentTopic+"&seqid=" + lastSeqid + "&count=5",
+                    //context: document.body,
+                    success: function(data, status, request) {
+                        $('#recentPollResults').html("");
+                        $.each(data, function(key, val) {
+                            $('#recentPollResults').html($('#recentPollResults').html()+ key + '=' + val + ' : ');
+                        });
+                        lastSeqid = data.seqid;
+                        for (var messageIndex in data.message){
+                            var messageJSON = data.message[messageIndex];
+                            var message = eval("("+messageJSON+")");
+                            $('#chat').val(message.name + ": " + message.message + "\n" + $('#chat').val());
+
+                        }
+                        setTimeout(
+                            'poll()', /* Request next message */
+                            100
+                        );
+                    },
+                    error: function(request, status, error) {
+                        //alert(request + " : " + status + " : " + error);
+                    }
+                });
+            }
+
+        </script>
+  </head>
+  <body>
+  <form name="chat">
+      <textarea rows="20" cols="80" id="chat"></textarea>
+  </form>
+  <div>Last Poll Result: <span id="recentPollResults"></span></div><br/>
+  <form id="postForm" action="/post" method="post">
+      Topic: <input id="topic" name="topic" type="text" value="test"/><br/>
+      Post name: <input name="name" type="text" value=""/> message: <input name="message" type="text" value=""/> <input type="submit" name="Go" value="go"/>
+  </form>
+  <div id="postResults"></div>
+  </body>
+</html>
