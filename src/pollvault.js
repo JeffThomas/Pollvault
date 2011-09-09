@@ -48,9 +48,21 @@ var launchStageTwo = function() {
 
 function subcribeToSNS() {
     var query = [];
-    query['Endpoint'] = LISTEN_URL + ':' + LISTEN_PORT + '/confirmSNS';
+    query['Endpoint'] = LISTEN_URL + ':' + LISTEN_PORT + '/postSNS';
     query['Protocol'] = 'http';
     query['TopicArn'] = SNS_ARN;
+    snsClient.call('ConfirmSubscription',query,function(obj){
+        if (obj.Error != undefined){
+            sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
+        }
+        sys.puts("SNS Subscription Confirmed to: " + SNS_ARN)
+    });
+}
+
+function confirmSNS(token) {
+    var query = [];
+    query['Token'] = token;
+    query['Protocol'] = 'http';
     snsClient.call('Subscribe',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
@@ -305,6 +317,14 @@ var launch = function() {
                                 // parse the received body data
                                 var decodedBody = querystring.parse(fullBody);
 
+                                // check for subscription confirmation
+                                if (decodedBody.Token != undefined){
+                                    confirmSNS(decodedBody.Token);
+                                    response.end();
+                                    response = null;
+                                    return;
+                                }
+
                                 if (decodedBody.subject == undefined) {
                                     sendMessage(response, 200, "OK", JSON.stringify([
                                         {
@@ -402,62 +422,6 @@ var launch = function() {
                                 response = null;
                             });
                         }                    
-                    case '/confirmSNS':
-                        // confirm being an SNS end-point
-                        if (request.method == 'POST') {
-                            var fullBody = '';
-
-                            // accept a data chunk
-                            request.on('data', function(chunk) {
-                                // append the current chunk of data to the fullBody variable
-                                fullBody += chunk.toString();
-                            });
-
-                            // end of the incoming data, process the post
-                            request.on('end', function() {
-                                var topic = null;
-                                var topicName = '';
-
-                                // parse the received body data
-                                var decodedBody = querystring.parse(fullBody);
-                                
-                                sys.puts("Confirm: " + sys.inspect(decodedBody));
-
-                                response.end();
-                                response = null;
-                            });
-                        } else {
-                            var fullBody = '';
-
-                            // accept a data chunk
-                            request.on('data', function(chunk) {
-                                // append the current chunk of data to the fullBody variable
-                                fullBody += chunk.toString();
-                            });
-
-                            // end of the incoming data, process the post
-                            request.on('end', function() {
-                                var topic = null;
-                                var topicName = '';
-
-                                // parse the received body data
-                                var decodedBody = querystring.parse(fullBody);
-
-                                sys.puts("Uknown request: " + decodedBody);
-
-                                sendMessage(response, 405, "Method not supported", JSON.stringify([
-                                    {
-                                        seqid : -1,
-                                        result : "ERROR",
-                                        message : "Method not supported"
-                                    }
-                                ]));
-
-                                response.end();
-                                response = null;
-                            });
-                        }
-                        break;
                     case '/poll':
                         longPoll = false;
                     case '/longpoll':
