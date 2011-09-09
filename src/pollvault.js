@@ -48,10 +48,9 @@ var launchStageTwo = function() {
 
 function subcribeToSNS() {
     var query = [];
-    query['Endpoint'] = LISTEN_URL + ':' + LISTEN_PORT;
+    query['Endpoint'] = LISTEN_URL + ':' + LISTEN_PORT + '/confirmSNS';
     query['Protocol'] = 'http';
     query['TopicArn'] = SNS_ARN;
-    sys.puts(snsClient);
     snsClient.call('Subscribe',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
@@ -275,6 +274,8 @@ var launch = function() {
             function(request, response) {
                 var longPoll = true;
                 request.setEncoding("utf8");
+                
+                sys.puts("incoming request: " + request.url + " : " + request.method);
 
                 // check the path to determine our action
                 switch (request.url.split('?')[0]) {
@@ -396,6 +397,31 @@ var launch = function() {
                                 // aid our garbage collection
                                 decodedBody = null;
                                 fullBody = null;
+
+                                response.end();
+                                response = null;
+                            });
+                        }                    
+                    case '/confirmSNS':
+                        // confirm being an SNS end-point
+                        if (request.method == 'POST') {
+                            var fullBody = '';
+
+                            // accept a data chunk
+                            request.on('data', function(chunk) {
+                                // append the current chunk of data to the fullBody variable
+                                fullBody += chunk.toString();
+                            });
+
+                            // end of the incoming data, process the post
+                            request.on('end', function() {
+                                var topic = null;
+                                var topicName = '';
+
+                                // parse the received body data
+                                var decodedBody = querystring.parse(fullBody);
+                                
+                                sys.puts("Confirm: " + sys.inspect(decodedBody));
 
                                 response.end();
                                 response = null;
