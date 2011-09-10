@@ -62,7 +62,7 @@ function subcribeToSNS() {
 function confirmSNS(token) {
     var query = [];
     query['Token'] = token;
-    query['Protocol'] = 'http';
+    query['TopicArn'] = SNS_ARN;
     snsClient.call('ConfirmSubscription',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
