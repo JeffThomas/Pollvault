@@ -51,6 +51,7 @@ function subcribeToSNS() {
     query['Endpoint'] = LISTEN_URL + ':' + LISTEN_PORT + '/postSNS';
     query['Protocol'] = 'http';
     query['TopicArn'] = SNS_ARN;
+    sys.puts("Subscribing to SNS: " + SNS_ARN);
     snsClient.call('Subscribe',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
@@ -61,13 +62,13 @@ function subcribeToSNS() {
 
 function confirmSNS(obj) {
     var query = [];
-    query['Token'] = obj.Token;
     query['TopicArn'] = obj.TopicArn;
+    query['Token'] = obj.Token;
     snsClient.call('ConfirmSubscription',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
             return;
-        } else if (obj.SubscribeResult != undefined) {
+        } else {
             sys.puts("SNS Subscription Confirmed to: " + SNS_ARN)
         }
     });
@@ -312,9 +313,9 @@ var launch = function() {
                             request.on('end', function() {
                                 var topic = null;
                                 var topicName = '';
-
+                                
                                 // parse the received body data
-                                var decodedBody = querystring.parse(fullBody);
+                                var decodedBody = JSON.parse(fullBody);
 
                                 // check for subscription confirmation
                                 if (decodedBody.Token != undefined){
