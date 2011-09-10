@@ -54,8 +54,8 @@ function subcribeToSNS() {
     snsClient.call('Subscribe',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
+            return;
         }
-        sys.puts("SNS Subscription Confirmed to: " + SNS_ARN)
     });
 }
 
@@ -66,11 +66,10 @@ function confirmSNS(token) {
     snsClient.call('ConfirmSubscription',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
+            return;
         } else if (obj.SubscribeResult != undefined) {
-
+            sys.puts("SNS Subscription Confirmed to: " + SNS_ARN)
         }
-
-        sys.puts("Subscribe result: " + sys.inspect(obj));
     });
 }
 
