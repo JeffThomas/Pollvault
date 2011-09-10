@@ -59,10 +59,10 @@ function subcribeToSNS() {
     });
 }
 
-function confirmSNS(token) {
+function confirmSNS(obj) {
     var query = [];
-    query['Token'] = token;
-    query['TopicArn'] = SNS_ARN;
+    query['Token'] = obj.Token;
+    query['TopicArn'] = obj.TopicArn;
     snsClient.call('ConfirmSubscription',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
@@ -318,7 +318,7 @@ var launch = function() {
 
                                 // check for subscription confirmation
                                 if (decodedBody.Token != undefined){
-                                    confirmSNS(decodedBody.Token);
+                                    confirmSNS(decodedBody);
                                     response.end();
                                     response = null;
                                     return;
