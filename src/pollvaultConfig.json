@@ -3,5 +3,7 @@
 	"pollTimeout": 45000,
 	"topicTimeout": 60000,
 	"messageHistoryMax": 200,
+    "awsKey": "AKIAIUKB5FCJBAL3CT3A",
+    "awsSecret": "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",
     "snsArn": "arn:aws:sns:us-east-1:268581570606:pollvault_test"
 }

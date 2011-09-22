@@ -18,6 +18,8 @@ var LISTEN_URL = "http://24.7.76.113";
 var POLL_TIMEOUT = 45000;
 var TOPIC_TIMEOUT = 60000;
 var MESSAGE_HISTORY_MAX = 20;
+var AWS_KEY = "none";
+var AWS_SECRET = "none";
 var SNS_ARN = "none";
 
 var snsStatus = "none"
@@ -31,7 +33,7 @@ var snsClient = null;
 loadConfiguration();
 
 var launchStageTwo = function() {
-    snsClient = aws.createSNSClient("AKIAIUKB5FCJBAL3CT3A", "GNF6vZoZlJzCCgjl5jlvYA8PnfObhNr9NmwGTwGG", null);
+    snsClient = aws.createSNSClient(AWS_KEY, AWS_SECRET, null);
 
     if (SNS_ARN != "none"){
         subcribeToSNS();
@@ -100,6 +102,12 @@ function loadConfiguration() {
             }
             if (config.messageHistoryMax != undefined) {
                 MESSAGE_HISTORY_MAX = config.messageHistoryMax;
+            }
+            if (config.awsKey != undefined) {
+                AWS_KEY = config.awsKey;
+            }
+            if (config.awsSecret != undefined) {
+                AWS_SECRET = config.awsSecret;
             }
             if (config.snsArn != undefined) {
                 sys.puts("One: " + config.snsArn);
