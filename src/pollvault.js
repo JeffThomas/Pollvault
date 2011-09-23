@@ -323,8 +323,6 @@ var launch = function() {
                                 var topic = null;
                                 var topicName = '';
 
-                                sys.puts(fullBody);
-                                
                                 // parse the received body data
                                 var decodedBody = JSON.parse(fullBody);
 
@@ -336,7 +334,7 @@ var launch = function() {
                                     return;
                                 }
 
-                                if (decodedBody.subject == undefined) {
+                                if (decodedBody.Subject == undefined) {
                                     sendMessage(response, 200, "OK", JSON.stringify([
                                         {
                                             seqid : seqid,
@@ -351,7 +349,7 @@ var launch = function() {
                                     topicName = "" + decodedBody.subject;
                                 }
 
-                                if (decodedBody.message == undefined) {
+                                if (decodedBody.Message == undefined) {
                                     sendMessage(response, 200, "OK", JSON.stringify([
                                         {
                                             seqid : seqid,
