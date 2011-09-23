@@ -363,7 +363,10 @@ var launch = function() {
                                 }
 
                                 //sys.puts("Adding message, topic: " + topicName + " message: " + decodedBody.message);
-                                addMessage(topicName, decodedBody.Message);
+                                addMessage(topicName, {
+                                    topic: topic,
+                                    message: decodedBody.Message
+                                });
 
                                 decodedBody = null;
                                 topicName = null;
