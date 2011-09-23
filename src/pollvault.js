@@ -250,9 +250,10 @@ var newTopic = function(topicName, seqidNew) {
     return newTopic;
 }
 
-function addMessage(topicName, topic, decodedBody) {
+function addMessage(topicName, decodedBody) {
     // update our sequence number so everyone knows there's a new message
     var seqidNew = ++seqid;
+    var topic = null;
 
     // make sure we have this topic, or create a new one
     if (topics[topicName] == undefined || topics[topicName] == null) {
@@ -321,12 +322,14 @@ var launch = function() {
                             request.on('end', function() {
                                 var topic = null;
                                 var topicName = '';
+
+                                sys.puts(fullBody);
                                 
                                 // parse the received body data
                                 var decodedBody = JSON.parse(fullBody);
 
                                 // check for subscription confirmation
-                                if (decodedBody.Token != undefined){
+                                if (decodedBody.Type == "SubscriptionConfirmation"){
                                     confirmSNS(decodedBody);
                                     response.end();
                                     response = null;
@@ -361,7 +364,8 @@ var launch = function() {
                                     return;
                                 }
 
-                                addMessage(topicName, topic, decodedBody);
+                                //sys.puts("Adding message, topic: " + topicName + " message: " + decodedBody.message);
+                                addMessage(topicName, decodedBody.message);
 
                                 decodedBody = null;
                                 topicName = null;
@@ -420,7 +424,7 @@ var launch = function() {
                                     return;
                                 }
 
-                                addMessage(topicName, topic, decodedBody);
+                                addMessage(topicName, decodedBody);
 
                                 // aid our garbage collection
                                 decodedBody = null;
