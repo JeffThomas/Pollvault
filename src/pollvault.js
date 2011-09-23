@@ -346,7 +346,7 @@ var launch = function() {
                                     response = null;
                                     return;
                                 } else {
-                                    topicName = "" + decodedBody.subject;
+                                    topicName = "" + decodedBody.Subject;
                                 }
 
                                 if (decodedBody.Message == undefined) {
