@@ -462,7 +462,7 @@ var launch = function() {
                             request.on('end', function() {
                                 var requestTopics = [];
                                 var topicNames = [];
-                                var seqid = seqid;
+                                var pseqid = seqid;
                                 var count = 200;
 
                                 // we ignore the body of the GET
