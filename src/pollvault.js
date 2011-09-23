@@ -428,8 +428,16 @@ var launch = function() {
 
                                 response.end();
                                 response = null;
+                                sendMessage(response, 200, "OK", JSON.stringify([
+                                    {
+                                        seqid : seqid,
+                                        result : "OK",
+                                        message : ""
+                                    }
+                                ]));
                             });
-                        }                    
+                        }
+                        break;
                     case '/poll':
                         longPoll = false;
                     case '/longpoll':
