@@ -426,8 +426,6 @@ var launch = function() {
                                 decodedBody = null;
                                 fullBody = null;
 
-                                response.end();
-                                response = null;
                                 sendMessage(response, 200, "OK", JSON.stringify([
                                     {
                                         seqid : seqid,
@@ -435,6 +433,9 @@ var launch = function() {
                                         message : ""
                                     }
                                 ]));
+
+                                response.end();
+                                response = null;
                             });
                         }
                         break;
