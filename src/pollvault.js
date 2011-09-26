@@ -577,8 +577,8 @@ var launch = function() {
                                                     message : []
                                                 }
                                             );
-                                            if (request.callback){
-                                                returnMessage = request.callback + "(" + returnMessage + ")";
+                                            if (response.callback){
+                                                returnMessage = response.callback + "(" + returnMessage + ")";
                                             }
                                             sendMessage(response, 200, "OK", returnMessage);
                                             // make sure to remove our listeners after a timeout
