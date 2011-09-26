@@ -570,13 +570,17 @@ var launch = function() {
                                         // don't forget a timeout
                                         response.myTimeout = setTimeout(function() {
                                             // the timeout message
-                                            sendMessage(response, 200, "OK", JSON.stringify(
+                                            var returnMessage = JSON.stringify(
                                                 {
                                                     seqid : response.mySeqid,
                                                     result : "OK",
                                                     message : []
                                                 }
-                                            ));
+                                            );
+                                            if (request.callback){
+                                                returnMessage = request.callback + "(" + returnMessage + ")";
+                                            }
+                                            sendMessage(response, 200, "OK", returnMessage);
                                             // make sure to remove our listeners after a timeout
                                             for (var topicIndex in requestTopics) {
                                                 var topic = requestTopics[topicIndex];
