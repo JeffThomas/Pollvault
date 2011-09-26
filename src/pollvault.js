@@ -181,7 +181,7 @@ var sendMessage = function(response, resultCode, resultText, message) {
 // fill the send queue and the client will never receive messages from
 // a topic further in the requested topic list. so always list your
 // topics in order of priority.
-var sendBacklog = function(response, requestTopics, seqidIn, count) {
+var sendBacklog = function(response, requestTopics, seqidIn, count, callback) {
     // gather the topics we want and check their backlog of messages
     // also keeps track of the largest sequence ID of the messages to send
     var toSend = [];
@@ -220,14 +220,20 @@ var sendBacklog = function(response, requestTopics, seqidIn, count) {
                 recentSeqid = toSend[nmIndex].seqid;
             }
         }
-        // send them along
-        sendMessage(response, 200, "OK", JSON.stringify(
+        var response = JSON.stringify(
             {
                 seqid : recentSeqid,
                 result : "OK",
                 message : messages
             }
-        ));
+        );
+
+        if (callback){
+            response = callback + "(" + response + ");"
+        }
+
+        // send them along
+        sendMessage(response, 200, "OK", response);
         response.end();
         messages = null;
         toSend = null;
@@ -464,6 +470,7 @@ var launch = function() {
                                 var topicNames = [];
                                 var pseqid = seqid;
                                 var count = 200;
+                                var callback = false;
 
                                 // we ignore the body of the GET
                                 fullBody = null;
@@ -497,6 +504,11 @@ var launch = function() {
                                     count = parseInt(urlObj.query["count"]);
                                 }
 
+                                // get the javascript callback
+                                if (urlObj.query["callback"] != undefined) {
+                                    callback = urlObj.query["callback"];
+                                }
+
                                 for (var topicNameIndex in topicNames) {
                                     var topicName = topicNames[topicNameIndex];
                                     if (topics[topicName] == undefined || topics[topicName] == null) {
@@ -510,7 +522,7 @@ var launch = function() {
 
                                 // if we have messages waiting for this request send them now
                                 // otherwise start the long poll
-                                if (!sendBacklog(response, requestTopics, seqidIn, count)) {
+                                if (!sendBacklog(response, requestTopics, seqidIn, count, callback)) {
                                     // no backlog, if we're not long polling send OK
                                     if (!longPoll) {
                                         // the timeout message
@@ -524,6 +536,8 @@ var launch = function() {
                                     } else {
                                         // save our seqid so some other event doesn't increment it before we use it
                                         response.mySeqid = seqidIn;
+                                        response.callback = callback;
+                                        response.count = count;
                                         response.topics = {};
                                         // add us as a listener for topic events
                                         for (var topicIndex in requestTopics) {
@@ -535,7 +549,7 @@ var launch = function() {
                                                 //console.log("Listener Fired with message'" + message + "' ");
                                                 // the listener tells us there's a new backlog of messages to send,
                                                 // so send them
-                                                sendBacklog(response, requestTopics, response.mySeqid, count);
+                                                sendBacklog(response, [topic], response.mySeqid, response.count, response.callback);
                                                 // no go through and remove all of our listeners because this request is over
                                                 for (var topicIndex in requestTopics) {
                                                     var topic = requestTopics[topicIndex];
