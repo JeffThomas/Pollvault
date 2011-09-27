@@ -307,13 +307,16 @@ var launch = function() {
                 // check the path to determine our action
                 switch (request.url.split('?')[0]) {
                     case '/stats':
-                        sendErrorMessage(response, 501, "Not implemented", JSON.stringify([
-                            {
-                                seqid : -1,
-                                result : "ERROR",
-                                message : "Not implemented"
-                            }
-                        ]));
+                        var stats = "";
+                        var listenerCount = 0;
+                        status += "Topics: " + topics.length + "<br/>\n";
+                        for (var topicIndex in topics) {
+                            var topic = topics[topicNameIndex];
+                            stats += topic.name + " : " + topic.emitter.listeners("message").length + "<br/>\n"
+                            listenerCount += topic.emitter.listeners("message").length;
+                        }
+                        stats += "Total listeners: " + listenerCount + "<br>\n";
+                        sendMessage(response, 200, "OK", stats, false);
                         break;
                     case '/postSNS':
                         // accept a post from Amazon SNS - untested as of yet
@@ -609,7 +612,7 @@ var launch = function() {
                     for (var topicIndex in topics) {
                         var topic = topics[topicIndex];
                         if (now - topic.lastMessageTime > TOPIC_TIMEOUT
-                            && topic.emitter.listeners.length == 0) {
+                            && topic.emitter.listeners("message").length == 0) {
                             deadTopics.push(topic);
                         }
                     }
