@@ -165,6 +165,7 @@ var sendErrorMessage = function(response, resultCode, resultText, message) {
 // function for sending plain text responses
 var sendMessage = function(response, resultCode, resultText, message, callback) {
     //console.log("Sending message [" + resultCode + "] " + message);
+    sys.puts(response);
     if (callback){
         message = callback + "(" + message + ");"
     }
@@ -223,7 +224,7 @@ var sendBacklog = function(response, requestTopics, seqidIn, count, callback) {
                 recentSeqid = toSend[nmIndex].seqid;
             }
         }
-        var response = JSON.stringify(
+        var message = JSON.stringify(
             {
                 seqid : recentSeqid,
                 result : "OK",
@@ -232,7 +233,7 @@ var sendBacklog = function(response, requestTopics, seqidIn, count, callback) {
         );
 
         // send them along
-        sendMessage(response, 200, "OK", response, callback);
+        sendMessage(response, 200, "OK", message, callback);
         response.end();
         messages = null;
         toSend = null;
@@ -547,7 +548,7 @@ var launch = function() {
                                                 //console.log("Listener Fired with message'" + message + "' ");
                                                 // the listener tells us there's a new backlog of messages to send,
                                                 // so send them
-                                                sendBacklog(response, [topic], response.mySeqid, response.count, response.callback);
+                                                sendBacklog(response, requestTopics, response.mySeqid, response.count, response.callback);
                                                 // no go through and remove all of our listeners because this request is over
                                                 for (var topicIndex in requestTopics) {
                                                     var topic = requestTopics[topicIndex];
