@@ -166,7 +166,7 @@ var sendErrorMessage = function(response, resultCode, resultText, message) {
 var sendMessage = function(response, resultCode, resultText, message, callback) {
     //console.log("Sending message [" + resultCode + "] " + message);
     if (callback){
-        response = callback + "(" + message + ");"
+        message = callback + "(" + message + ");"
     }
     response.writeHead(resultCode, resultText, {'Content-Type': 'text/html'});
     response.write(message)
