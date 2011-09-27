@@ -163,8 +163,11 @@ var sendErrorMessage = function(response, resultCode, resultText, message) {
     response.end();
 }
 // function for sending plain text responses
-var sendMessage = function(response, resultCode, resultText, message) {
+var sendMessage = function(response, resultCode, resultText, message, callback) {
     //console.log("Sending message [" + resultCode + "] " + message);
+    if (callback){
+        response = callback + "(" + message + ");"
+    }
     response.writeHead(resultCode, resultText, {'Content-Type': 'text/html'});
     response.write(message)
     response.end();
@@ -228,12 +231,8 @@ var sendBacklog = function(response, requestTopics, seqidIn, count, callback) {
             }
         );
 
-        if (callback){
-            response = callback + "(" + response + ");"
-        }
-
         // send them along
-        sendMessage(response, 200, "OK", response);
+        sendMessage(response, 200, "OK", response, callback);
         response.end();
         messages = null;
         toSend = null;
@@ -347,7 +346,7 @@ var launch = function() {
                                             result : "ERROR",
                                             message : "No subject specified"
                                         }
-                                    ]));
+                                    ]), false);
                                     fullBody = decodedBody = null;
                                     response = null;
                                     return;
@@ -362,7 +361,7 @@ var launch = function() {
                                             result : "ERROR",
                                             message : "No message"
                                         }
-                                    ]));
+                                    ]), false);
                                     fullBody = decodedBody = null;
                                     response = null;
                                     return;
@@ -410,7 +409,7 @@ var launch = function() {
                                             result : "ERROR",
                                             message : "No topic specified"
                                         }
-                                    ]));
+                                    ]), false);
                                     fullBody = decodedBody = null;
                                     response = null;
                                     return;
@@ -425,7 +424,7 @@ var launch = function() {
                                             result : "ERROR",
                                             message : "No message"
                                         }
-                                    ]));
+                                    ]), false);
                                     response = null;
                                     fullBody = decodedBody = null;
                                     return;
@@ -443,7 +442,7 @@ var launch = function() {
                                         result : "OK",
                                         message : ""
                                     }
-                                ]));
+                                ]), false);
 
                                 response.end();
                                 response = null;
@@ -478,6 +477,10 @@ var launch = function() {
                                 // parse the received query data
                                 var urlObj = url.parse(request.url, true);
 
+                                // get the javascript callback
+                                if (urlObj.query["callback"] != undefined) {
+                                    callback = urlObj.query["callback"];
+                                }
 
                                 // get the topic(s) we want to listen to
                                 if (urlObj.query["topic"] == undefined) {
@@ -487,7 +490,7 @@ var launch = function() {
                                             result : "ERROR",
                                             message : "No topic specified"
                                         }
-                                    ]));
+                                    ]), callback);
                                     response = null;
                                     return;
                                 } else {
@@ -502,11 +505,6 @@ var launch = function() {
                                 // get the count of messages you want
                                 if (urlObj.query["count"] != undefined) {
                                     count = parseInt(urlObj.query["count"]);
-                                }
-
-                                // get the javascript callback
-                                if (urlObj.query["callback"] != undefined) {
-                                    callback = urlObj.query["callback"];
                                 }
 
                                 for (var topicNameIndex in topicNames) {
@@ -532,7 +530,7 @@ var launch = function() {
                                                 result : "OK",
                                                 message : []
                                             }
-                                        ));
+                                        ), callback);
                                     } else {
                                         // save our seqid so some other event doesn't increment it before we use it
                                         response.mySeqid = seqidIn;
@@ -577,10 +575,7 @@ var launch = function() {
                                                     message : []
                                                 }
                                             );
-                                            if (response.callback){
-                                                returnMessage = response.callback + "(" + returnMessage + ")";
-                                            }
-                                            sendMessage(response, 200, "OK", returnMessage);
+                                            sendMessage(response, 200, "OK", returnMessage, response.callback);
                                             // make sure to remove our listeners after a timeout
                                             for (var topicIndex in requestTopics) {
                                                 var topic = requestTopics[topicIndex];
@@ -599,7 +594,7 @@ var launch = function() {
                                     result : "ERROR",
                                     message : "Method not supported"
                                 }
-                            ]));
+                            ]), false);
                         }
                         break;
                     default:
