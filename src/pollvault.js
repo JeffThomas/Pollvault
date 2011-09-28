@@ -506,6 +506,11 @@ var launch = function() {
                                     seqidIn = parseInt(urlObj.query["seqid"]);
                                 }
 
+                                // seqidIn -1 means don't send me a backlog, just new messages
+                                if (seqidIn == -1){
+                                    seqidIn = seqid;
+                                }
+
                                 // get the count of messages you want
                                 if (urlObj.query["count"] != undefined) {
                                     count = parseInt(urlObj.query["count"]);
