@@ -110,7 +110,6 @@ function loadConfiguration() {
                 AWS_SECRET = config.awsSecret;
             }
             if (config.snsArn != undefined) {
-                sys.puts("One: " + config.snsArn);
                 SNS_ARN = config.snsArn;
             }
             console.log("Configuration file read.")
@@ -165,7 +164,6 @@ var sendErrorMessage = function(response, resultCode, resultText, message) {
 // function for sending plain text responses
 var sendMessage = function(response, resultCode, resultText, message, callback) {
     //console.log("Sending message [" + resultCode + "] " + message);
-    sys.puts(response);
     if (callback){
         message = callback + "(" + message + ");"
     }
@@ -302,16 +300,16 @@ var launch = function() {
                 var longPoll = true;
                 request.setEncoding("utf8");
                 
-                sys.puts("incoming request: " + request.url + " : " + request.method);
+                //sys.puts("incoming request: " + request.url + " : " + request.method);
 
                 // check the path to determine our action
                 switch (request.url.split('?')[0]) {
                     case '/stats':
                         var stats = "";
                         var listenerCount = 0;
-                        status += "Topics: " + topics.length + "<br/>\n";
+                        stats += "Topics: <br/>\n";
                         for (var topicIndex in topics) {
-                            var topic = topics[topicNameIndex];
+                            var topic = topics[topicIndex];
                             stats += topic.name + " : " + topic.emitter.listeners("message").length + "<br/>\n"
                             listenerCount += topic.emitter.listeners("message").length;
                         }
