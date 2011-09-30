@@ -313,7 +313,6 @@ var launch = function() {
                             stats += topic.name + " : " + topic.emitter.listeners("message").length + "<br/>\n"
                             listenerCount += topic.emitter.listeners("message").length;
                         }
-                        stats += "Total listeners: " + listenerCount + "<br>\n";
                         sendMessage(response, 200, "OK", stats, false);
                         break;
                     case '/postSNS':
@@ -616,6 +615,7 @@ var launch = function() {
                         var topic = topics[topicIndex];
                         if (now - topic.lastMessageTime > TOPIC_TIMEOUT
                             && topic.emitter.listeners("message").length == 0) {
+                            sys.puts("Dead Topic: " + topic.name);
                             deadTopics.push(topic);
                         }
                     }
