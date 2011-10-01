@@ -614,6 +614,7 @@ var launch = function() {
                     var deadTopics = [];
                     for (var topicIndex in topics) {
                         var topic = topics[topicIndex];
+                        sys.puts("Test Topic last message time: " + now - topic.lastMessageTime);
                         if (now - topic.lastMessageTime > TOPIC_TIMEOUT
                             && topic.emitter.listeners("message").length == 0) {
                             sys.puts("Dead Topic: " + topic.name);
