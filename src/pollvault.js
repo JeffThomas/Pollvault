@@ -157,6 +157,7 @@ var topics = {};
 // here so we don't get the logs spammed by bad clients.
 var sendErrorMessage = function(response, resultCode, resultText, message) {
     console.log("Sending ERROR message [" + resultCode + "] " + message);
+    sys.puts("Sending ERROR message [" + resultCode + "] " + message);
     response.writeHead(resultCode, resultText, {'Content-Type': 'text/html'});
     response.write('<html><head><title>[' + resultCode + '] ' + resultText + '  </title></head><body><h1>' + message + '</h1></body></html>')
     response.end();
