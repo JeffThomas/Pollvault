@@ -8,10 +8,6 @@ var sys = require("sys"),
         querystring = require("querystring"),
         net = require("net");
 
-var aws = require("../lib/aws");
-
-var seqid = 0;
-
 // parameters
 var LISTEN_PORT = 8085;
 var LISTEN_URL = "http://24.7.76.113";
@@ -21,6 +17,11 @@ var MESSAGE_HISTORY_MAX = 20;
 var AWS_KEY = "none";
 var AWS_SECRET = "none";
 var SNS_ARN = "none";
+var LISTENERS_CREATE_TOPICS = false;
+
+var aws = require("../lib/aws");
+
+var seqid = 0;
 
 var snsStatus = "none"
 
@@ -41,7 +42,6 @@ var launchStageTwo = function() {
 
     launch();
 }
-
 
 
 //
@@ -66,6 +66,8 @@ function confirmSNS(obj) {
     var query = [];
     query['TopicArn'] = obj.TopicArn;
     query['Token'] = obj.Token;
+    seqid = (new Date(obj.Timestamp)).getTime();
+    sys.puts("seqid set to: " + seqid);
     snsClient.call('ConfirmSubscription',query,function(obj){
         if (obj.Error != undefined){
             sys.puts("Error subscribing to SNS: " + sys.inspect(obj));
@@ -255,9 +257,12 @@ var newTopic = function(topicName, seqidNew) {
     return newTopic;
 }
 
-function addMessage(topicName, decodedBody) {
+function addMessage(topicName, decodedBody, seqidIn) {
     // update our sequence number so everyone knows there's a new message
-    var seqidNew = ++seqid;
+    while(seqidIn <= seqid){
+        seqidIn++;
+    }
+    var seqidNew = seqid = seqidIn;
     var topic = null;
 
     // make sure we have this topic, or create a new one
@@ -284,7 +289,6 @@ function addMessage(topicName, decodedBody) {
     if (topic.messageHistory.unshift(newMessage) > MESSAGE_HISTORY_MAX) {
         topic.messageHistory.pop();
     }
-    // DeVry
 
     // send an event to all this topics listeners
     topic.emitter.emit("message", decodedBody.message);
@@ -315,6 +319,18 @@ var launch = function() {
                             listenerCount += topic.emitter.listeners("message").length;
                         }
                         sendMessage(response, 200, "OK", stats, false);
+                        break;
+                    case '/statsJSON':
+                        var stats = {};
+                        var listenerCount = 0;
+                        stats.topics = {};
+                        for (var topicIndex in topics) {
+                            var topic = topics[topicIndex];
+                            stats.topics[topic.name] = {}
+                            stats.topics[topic.name].listeners = topic.emitter.listeners("message").length;
+                            listenerCount += topic.emitter.listeners("message").length;
+                        }
+                        sendMessage(response, 200, "OK", JSON.stringify(stats), false);
                         break;
                     case '/postSNS':
                         // accept a post from Amazon SNS - untested as of yet
@@ -369,11 +385,25 @@ var launch = function() {
                                     return;
                                 }
 
+                                var time = (new Date(decodedBody.Timestamp)).getTime();
+
+                                if (topicName.startsWith("wrestler:")){
+                                    if (topics[topicName] == undefined || topics[topicName] == null){
+                                        sendMessage(response, 200, "OK", JSON.stringify([
+                                            {
+                                                seqid : seqid,
+                                                result : "ERROR",
+                                                message : "Can't create wrestler topic."
+                                            }
+                                        ]), false);
+                                    }
+                                }
+
                                 //sys.puts("Adding message, topic: " + topicName + " message: " + decodedBody.message);
                                 addMessage(topicName, {
                                     topic: topic,
                                     message: decodedBody.Message
-                                });
+                                }, time);
 
                                 decodedBody = null;
                                 topicName = null;
@@ -432,7 +462,7 @@ var launch = function() {
                                     return;
                                 }
 
-                                addMessage(topicName, decodedBody);
+                                addMessage(topicName, decodedBody, (new Date()).getTime());
 
                                 // aid our garbage collection
                                 decodedBody = null;
@@ -517,8 +547,10 @@ var launch = function() {
                                 for (var topicNameIndex in topicNames) {
                                     var topicName = topicNames[topicNameIndex];
                                     if (topics[topicName] == undefined || topics[topicName] == null) {
-                                        console.log("Creating new topic for GET '" + topicName + "' ");
-                                        topic = newTopic(topicName, -1);
+                                        if (LISTENERS_CREATE_TOPICS || topicName.startsWith("wrestler:")){
+                                            console.log("Creating new topic for GET '" + topicName + "' ");
+                                            topic = newTopic(topicName, -1);
+                                        }
                                     } else {
                                         topic = topics[topicName];
                                     }
@@ -588,6 +620,7 @@ var launch = function() {
                                                 var topic = requestTopics[topicIndex];
                                                 topic.emitter.removeListener("message", response.topics[topic.name]);
                                             }
+                                            response.end();
                                             response = null;
                                             requestTopics = null;
                                         }, POLL_TIMEOUT);
