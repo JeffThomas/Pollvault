@@ -55,6 +55,7 @@ if (typeof String.prototype.startsWith != 'function') {
   };
 }
 
+
 //
 // functions
 //
@@ -407,6 +408,9 @@ var launch = function() {
                                                 message : "Can't create wrestler topic."
                                             }
                                         ]), false);
+                                        fullBody = decodedBody = null;
+                                        response = null;
+                                        return;
                                     }
                                 }
 
@@ -564,8 +568,8 @@ var launch = function() {
                                         }
                                     } else {
                                         topic = topics[topicName];
+                                        requestTopics.push(topic);
                                     }
-                                    requestTopics.push(topic);
                                 }
 
                                 // if we have messages waiting for this request send them now
