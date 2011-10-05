@@ -335,12 +335,10 @@ var launch = function() {
                     case '/statsJSON':
                         var stats = {};
                         var listenerCount = 0;
-                        stats.topics = {};
+                        stats.topics = [];
                         for (var topicIndex in topics) {
                             var topic = topics[topicIndex];
-                            stats.topics[topic.name] = {}
-                            stats.topics[topic.name].listeners = topic.emitter.listeners("message").length;
-                            listenerCount += topic.emitter.listeners("message").length;
+                            stats.topics.push({"name":topic.name,"listeners":topic.emitter.listeners("message").length})
                         }
                         sendMessage(response, 200, "OK", JSON.stringify(stats), false);
                         break;
