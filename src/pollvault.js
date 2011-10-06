@@ -324,23 +324,35 @@ var launch = function() {
                     case '/stats':
                         var stats = "";
                         var listenerCount = 0;
+                        // parse the received query data
+                        var urlObj = url.parse(request.url, true);
+                        // get the javascript callback
+                        if (urlObj.query["callback"] != undefined) {
+                            callback = urlObj.query["callback"];
+                        }
                         stats += "Topics: <br/>\n";
                         for (var topicIndex in topics) {
                             var topic = topics[topicIndex];
                             stats += topic.name + " : " + topic.emitter.listeners("message").length + "<br/>\n"
                             listenerCount += topic.emitter.listeners("message").length;
                         }
-                        sendMessage(response, 200, "OK", stats, false);
+                        sendMessage(response, 200, "OK", stats, callback);
                         break;
                     case '/statsJSON':
                         var stats = {};
                         var listenerCount = 0;
+                        // parse the received query data
+                        var urlObj = url.parse(request.url, true);
+                        // get the javascript callback
+                        if (urlObj.query["callback"] != undefined) {
+                            callback = urlObj.query["callback"];
+                        }
                         stats.topics = [];
                         for (var topicIndex in topics) {
                             var topic = topics[topicIndex];
                             stats.topics.push({"name":topic.name,"listeners":topic.emitter.listeners("message").length})
                         }
-                        sendMessage(response, 200, "OK", JSON.stringify(stats), false);
+                        sendMessage(response, 200, "OK", JSON.stringify(stats), callback);
                         break;
                     case '/postSNS':
                         // accept a post from Amazon SNS - untested as of yet
